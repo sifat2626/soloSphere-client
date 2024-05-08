@@ -1,40 +1,50 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import bgImg from "../../assets/images/login.jpg";
 import logo from "../../assets/images/logo.png";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { AuthContext } from "../../provider/AuthProvider";
 import toast from "react-hot-toast";
 
 const Login = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle } = useContext(AuthContext);
+  const { signIn, signInWithGoogle, user, loading } = useContext(AuthContext);
+  const from = location.state || "/";
 
   // Google SignIn
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
       toast.success("Login Successful");
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (error) {
       toast.error(error.message);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [navigate, user]);
 
   // Email Password SignIn
   const handleSignIn = async (e) => {
     e.preventDefault();
     const form = e.target;
     const email = form.email.value;
-    const pass = form.pass.value;
+    const pass = form.password.value;
     try {
       const result = await signIn(email, pass);
       toast.success("Login Successful");
       console.log(result);
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (error) {
       toast.error(error?.message);
     }
   };
+
+  if (user || loading) return;
 
   return (
     <div className="flex justify-center items-center min-h-[calc(100vh-306px)] my-12">
